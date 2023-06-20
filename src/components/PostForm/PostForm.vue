@@ -30,6 +30,15 @@ export default {
       };
     },
   },
+  //   Example for objects and Arrays =====================
+  //   watch: {
+  //     post: {
+  //       handler(newValue) {
+  //         console.log("newValue post", newValue);
+  //       },
+  //       deep: true,
+  //     },
+  //   },
 };
 </script>
 

@@ -10,7 +10,11 @@
     <my-dialog v-model:show="dialogVisible">
       <post-form @create="createPost" />
     </my-dialog>
-    <post-list :posts="posts" v-if="!isPostLoading" @remove="removePost" />
+    <post-list
+      :posts="sortedPosts"
+      v-if="!isPostLoading"
+      @remove="removePost"
+    />
     <div v-else>Loading...</div>
   </div>
 </template>
@@ -67,6 +71,16 @@ export default {
     console.log("I'm mounted hook");
     this.fetchPosts();
   },
+  computed: {
+    sortedPosts() {
+      return [...this.posts].sort((firstPost, secondPost) =>
+        firstPost[this.selectedSort]?.localeCompare(
+          secondPost[this.selectedSort]
+        )
+      );
+    },
+  },
+  watch: {},
 };
 </script>
 
