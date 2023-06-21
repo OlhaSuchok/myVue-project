@@ -17,7 +17,8 @@
       @remove="removePost"
     />
     <div v-else>Loading...</div>
-    <ul class="page-list">
+    <div ref="observer" class="observer"></div>
+    <!-- <ul class="page-list">
       <li
         class="page-list-item"
         v-for="pageNumber in totalPages"
@@ -27,7 +28,7 @@
       >
         {{ pageNumber }}
       </li>
-    </ul>
+    </ul> -->
   </div>
 </template>
 
@@ -84,21 +85,53 @@ export default {
         this.totalPages = Math.ceil(
           response.headers["x-total-count"] / this.limit
         );
-        console.log("response", response);
-        console.log("response", response);
       } catch (error) {
         alert("Something went wrong");
       } finally {
         this.isPostLoading = false;
       }
     },
-    changePage(pageNumber) {
-      this.page = pageNumber;
+    async loadMorePosts() {
+      try {
+        this.page += 1;
+        const response = await axios.get(
+          "https://jsonplaceholder.typicode.com/posts",
+          {
+            params: {
+              _page: this.page,
+              _limit: this.limit,
+            },
+          }
+        );
+        this.totalPages = Math.ceil(
+          response.headers["x-total-count"] / this.limit
+        );
+        this.posts = [...this.posts, ...response.data];
+      } catch (error) {
+        alert("Something went wrong");
+      }
     },
+    // changePage(pageNumber) {
+    //   this.page = pageNumber;
+    // },
   },
   mounted() {
-    console.log("I'm mounted hook");
     this.fetchPosts();
+    console.log("this.$refs.observer", this.$refs.observer);
+
+    const options = {
+      rootMargin: "0px",
+      threshold: 1.0,
+    };
+
+    const callback = (entries) => {
+      if (entries[0].isIntersecting && this.page < this.totalPages) {
+        this.loadMorePosts();
+      }
+    };
+
+    const observer = new IntersectionObserver(callback, options);
+    observer.observe(this.$refs.observer);
   },
   computed: {
     sortedPosts() {
@@ -115,9 +148,9 @@ export default {
     },
   },
   watch: {
-    page() {
-      this.fetchPosts();
-    },
+    // page() {
+    //   this.fetchPosts();
+    // },
   },
 };
 </script>
@@ -162,9 +195,12 @@ export default {
     margin-right: 0;
   }
 }
-
 .current-page {
   background-color: cadetblue;
   color: white;
+}
+.observer {
+  height: 30px;
+  background-color: chocolate;
 }
 </style>
