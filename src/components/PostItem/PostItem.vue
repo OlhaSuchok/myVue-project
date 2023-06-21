@@ -5,7 +5,14 @@
       <div><strong>Description: </strong>{{ post.body }}</div>
     </div>
     <div class="post-btn">
-      <my-button @click="$emit('remove', post)">Delete</my-button>
+      <my-button
+        @click="$router.push(`/posts/${post.id}`)"
+        style="margin-right: 10px; width: 75px"
+        >Open</my-button
+      >
+      <my-button @click="$emit('remove', post)" style="width: 75px"
+        >Delete</my-button
+      >
     </div>
   </div>
 </template>
@@ -31,5 +38,8 @@ export default {
   border: 2px solid rgb(60, 211, 211);
   padding: 10px 15px;
   margin-bottom: 15px;
+}
+.post-btn {
+  display: flex;
 }
 </style>
