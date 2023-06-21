@@ -1,6 +1,7 @@
 <template>
   <div class="app">
     <h1 class="title">Posts page</h1>
+    <my-input v-model="searchQuery" placeholder="Search..." />
     <div class="app-btn-create">
       <my-button @click="showDialog" style="margin-top: 0"
         >Create post</my-button
@@ -11,11 +12,22 @@
       <post-form @create="createPost" />
     </my-dialog>
     <post-list
-      :posts="sortedPosts"
+      :posts="sortedAndSearchPosts"
       v-if="!isPostLoading"
       @remove="removePost"
     />
     <div v-else>Loading...</div>
+    <ul class="page-list">
+      <li
+        class="page-list-item"
+        v-for="pageNumber in totalPages"
+        :key="pageNumber"
+        :class="{ 'current-page': page === pageNumber }"
+        @click="changePage(pageNumber)"
+      >
+        {{ pageNumber }}
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -35,6 +47,10 @@ export default {
       dialogVisible: false,
       isPostLoading: false,
       selectedSort: "",
+      searchQuery: "",
+      page: 1,
+      limit: 10,
+      totalPages: 0,
       sortOptions: [
         { value: "title", name: "By name" },
         { value: "body", name: "By content" },
@@ -44,7 +60,7 @@ export default {
   methods: {
     createPost(post) {
       this.posts.push(post);
-      this.dialogVisible = "";
+      this.dialogVisible = false;
     },
     removePost(post) {
       this.posts = this.posts.filter((item) => item.id !== post.id);
@@ -56,15 +72,28 @@ export default {
       try {
         this.isPostLoading = true;
         const response = await axios.get(
-          "https://jsonplaceholder.typicode.com/posts?_limit=10"
+          "https://jsonplaceholder.typicode.com/posts",
+          {
+            params: {
+              _page: this.page,
+              _limit: this.limit,
+            },
+          }
         );
         this.posts = response.data;
+        this.totalPages = Math.ceil(
+          response.headers["x-total-count"] / this.limit
+        );
+        console.log("response", response);
         console.log("response", response);
       } catch (error) {
         alert("Something went wrong");
       } finally {
         this.isPostLoading = false;
       }
+    },
+    changePage(pageNumber) {
+      this.page = pageNumber;
     },
   },
   mounted() {
@@ -79,8 +108,17 @@ export default {
         )
       );
     },
+    sortedAndSearchPosts() {
+      return this.sortedPosts.filter((post) =>
+        post.title.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
   },
-  watch: {},
+  watch: {
+    page() {
+      this.fetchPosts();
+    },
+  },
 };
 </script>
 
@@ -100,5 +138,33 @@ export default {
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+}
+.page-list {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  margin-top: 15px;
+}
+.page-list-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid cadetblue;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+  background-color: rgb(185, 232, 234);
+  color: black;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.current-page {
+  background-color: cadetblue;
+  color: white;
 }
 </style>
